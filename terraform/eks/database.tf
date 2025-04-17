@@ -81,7 +81,9 @@ resource "aws_dynamodb_table" "billing_table" {
   #checkov:skip=CKV_AWS_119:demo only, no encryption is needed
 
   name           = "BillingInfo"
-  billing_mode   = "PAY_PER_REQUEST"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 10
+  write_capacity = 10
   hash_key       = "ownerId"
   range_key      = "timestamp"
 
