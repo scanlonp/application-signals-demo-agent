@@ -60,21 +60,37 @@ class BillingViewSet(viewsets.ViewSet):
         # Define the table name
         table_name = 'BillingInfo'
         current_time = datetime.datetime.now()
-        for i in range(0, 10):
+
+        # Create 15 items
+        for i in range(0, 15):
             offset_time = current_time + datetime.timedelta(minutes=i) 
             formatted_time = offset_time.strftime("%Y-%m-%d %H:%M:%S")
-            # Define the item you want to add
+            
+            # Define the item
             item = {
                 'ownerId': {'S': data['owner_id']},
                 'timestamp': {'S': formatted_time},
-                'billing': {'S': json.dumps(data)},
-                # Add more attributes as needed
+                'billing': {'S': json.dumps(data)}
             }
-
+    
             # Add the item to the table
             response = client.put_item(
                 TableName=table_name,
                 Item=item
+            )
+    
+            # Store key for deletion (except for the last item)
+            if i < 14:
+                items_to_delete.append({
+                    'ownerId': {'S': data['owner_id']},
+                    'timestamp': {'S': formatted_time}
+                })
+    
+        # Delete all items except the last one
+        for key in items_to_delete:
+            client.delete_item(
+                TableName=table_name,
+                Key=key
             )
 
 
