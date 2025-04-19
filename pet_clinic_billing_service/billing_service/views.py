@@ -60,6 +60,7 @@ class BillingViewSet(viewsets.ViewSet):
         # Define the table name
         table_name = 'BillingInfo'
         current_time = datetime.datetime.now()
+        items_to_delete = []
 
         # Create 15 items
         for i in range(0, 15):
