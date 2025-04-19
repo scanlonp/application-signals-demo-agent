@@ -113,14 +113,14 @@ jobs:
           # Upload terraform.state.json
           aws s3 cp ./topology/terraform.state.json s3://${{ env.TOPOLOGY_BUCKET }}/terraform.state.json/${{ github.sha }}/
     
-      # - name: Build Docker images
-      #   run: ./mvnw clean install -P buildDocker
+      - name: Build Docker images
+        run: ./mvnw clean install -P buildDocker
         
-      # - name: Push Docker images to ECR
-      #   run: |
-      #     export ACCOUNT=$(aws sts get-caller-identity | jq .Account -r)
-      #     export REGION=${{ env.AWS_REGION }}
-      #     ./push-ecr.sh
+      - name: Push Docker images to ECR
+        run: |
+          export ACCOUNT=$(aws sts get-caller-identity | jq .Account -r)
+          export REGION=${{ env.AWS_REGION }}
+          ./push-ecr.sh
       
       - name: Create kubeconfig directory
         run: mkdir -p ${{ github.workspace }}/.kube

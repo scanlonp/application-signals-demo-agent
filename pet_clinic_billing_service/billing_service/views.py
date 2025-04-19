@@ -60,20 +60,22 @@ class BillingViewSet(viewsets.ViewSet):
         # Define the table name
         table_name = 'BillingInfo'
         current_time = datetime.datetime.now()
-        formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
-        # Define the item you want to add
-        item = {
-            'ownerId': {'S': data['owner_id']},
-            'timestamp': {'S': formatted_time},
-            'billing': {'S': json.dumps(data)},
-            # Add more attributes as needed
-        }
+        for i in range(0, 10):
+            offset_time = current_time + datetime.timedelta(minutes=i) 
+            formatted_time = offset_time.strftime("%Y-%m-%d %H:%M:%S")
+            # Define the item you want to add
+            item = {
+                'ownerId': {'S': data['owner_id']},
+                'timestamp': {'S': formatted_time},
+                'billing': {'S': json.dumps(data)},
+                # Add more attributes as needed
+            }
 
-        # Add the item to the table
-        response = client.put_item(
-            TableName=table_name,
-            Item=item
-        )
+            # Add the item to the table
+            response = client.put_item(
+                TableName=table_name,
+                Item=item
+            )
 
 
 class HealthViewSet(viewsets.ViewSet):
