@@ -86,12 +86,12 @@ class BillingViewSet(viewsets.ViewSet):
                     'timestamp': {'S': formatted_time}
                 })
     
-        # Delete all items except the last one
-        for key in items_to_delete:
-            client.delete_item(
-                TableName=table_name,
-                Key=key
-            )
+            # Delete all items except the last one
+            for key in items_to_delete:
+                client.delete_item(
+                    TableName=table_name,
+                    Key=key
+                )
 
 
 class HealthViewSet(viewsets.ViewSet):
