@@ -107,7 +107,7 @@ class OwnerResource {
         ownerRepository.save(ownerModel);
     }
 
-    @Scheduled(cron = "0 0 8 * * ?") // every PST midnight
+    @Scheduled(cron = "0 0 */4 * * ?") // every 4 hours
     public void ageOldData() {
         log.info("ageOldData() get called and purge all data!");
         ownerRepository.deleteAll();
