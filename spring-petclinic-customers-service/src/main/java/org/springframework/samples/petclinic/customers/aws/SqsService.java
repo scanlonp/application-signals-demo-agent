@@ -63,7 +63,7 @@ public class SqsService {
             sqs.purgeQueue(purgeReq);
         } catch (SqsException e) {
             System.out.println(e.awsErrorDetails().errorMessage());
-            throw e;
+            // throw e;
         }
     }
 
