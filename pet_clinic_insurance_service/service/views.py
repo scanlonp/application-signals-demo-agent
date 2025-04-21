@@ -26,7 +26,7 @@ class PetInsuranceViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         owner_id = request.data.get('owner_id')
-        serializer.is_valid(raise_exception=True)
+        # serializer.is_valid(raise_exception=True)
         self.perform_update(serializer, owner_id)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
