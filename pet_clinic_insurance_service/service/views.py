@@ -28,6 +28,7 @@ class PetInsuranceViewSet(viewsets.ModelViewSet):
         owner_id = request.data.get('owner_id')
         if serializer.is_valid():
             self.perform_update(serializer, owner_id)
+        generate_billings(serializer.data, owner_id, "insurance", serializer.data.get("insurance_name"))
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -38,12 +39,12 @@ class PetInsuranceViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             self.perform_update(serializer, owner_id)
+            generate_billings(serializer.data, owner_id, "insurance", serializer.data.get("insurance_name"))
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer, owner_id):
         serializer.save()
-        generate_billings(serializer.data, owner_id, "insurance", serializer.data.get("insurance_name"))
     def send_update_notification(self, instance):
         # Your custom logic to send a notification
         # after the instance is updated
