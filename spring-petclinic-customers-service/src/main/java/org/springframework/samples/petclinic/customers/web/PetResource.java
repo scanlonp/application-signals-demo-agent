@@ -79,7 +79,7 @@ class PetResource {
             sqsService.sendMsg();
             owner.addPet(pet);
         } catch (Exception e) {
-            log.error("Failed to add pet: '{}' for owner: '{}'", petRequest.getName(), owner);
+            log.error("Failed to add pet: '{}' for owner: '{}'. Error: {}", petRequest.getName(), owner, e.getMessage(), e);
             throw e;
         }
         return save(pet, petRequest);
@@ -103,7 +103,7 @@ class PetResource {
                 petType = pet.getType().getName();
             }
         } catch (Exception e) {
-            log.error("Failed to find pet: '{}' ", petId);
+            log.error("Failed to find pet: '{}'. Error: {}", petId, e.getMessage(), e);
         }
 
         bedrockRuntimeV1Service.invokeTitanModel(petType);
@@ -150,7 +150,7 @@ class PetResource {
             petInsurance = response.getBody();
         }
         catch (Exception ex){
-            ex.printStackTrace();
+            log.error("Failed to get pet insurance for pet id: {}. Error: {}", detail.getId(), ex.getMessage(), ex);
         }
         if(petInsurance == null){
             System.out.println("empty petInsurance");
@@ -167,7 +167,7 @@ class PetResource {
             petNutrition = response.getBody();
         }
         catch (Exception ex){
-            ex.printStackTrace();
+            log.error("Failed to get pet nutrition for pet type: {}. Error: {}", detail.getType().getName(), ex.getMessage(), ex);
         }
         if(petNutrition == null){
             System.out.println("empty petNutrition");

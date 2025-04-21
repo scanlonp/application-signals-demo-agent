@@ -73,7 +73,7 @@ class OwnerResource {
     @GetMapping(value = "/{ownerId}")
     public Optional<Owner> findOwner(@PathVariable("ownerId") int ownerId) {
         if (ownerId < 1) {
-            log.error("Invalid owner id provided: {}", ownerId);
+            log.error("Invalid owner id provided: {}. Error: must be a positive number", ownerId);
             String reason = "Invalid user identifier " + ownerId + ": must be a positive number.";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, reason);
         }
