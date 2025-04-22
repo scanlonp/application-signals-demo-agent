@@ -82,8 +82,8 @@ resource "aws_dynamodb_table" "billing_table" {
 
   name           = "BillingInfo"
   billing_mode   = "PROVISIONED"
-  read_capacity  = 2
-  write_capacity = 2
+  read_capacity  = 4
+  write_capacity = 6
   hash_key       = "ownerId"
   range_key      = "timestamp"
 
