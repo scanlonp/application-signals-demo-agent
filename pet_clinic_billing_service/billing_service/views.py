@@ -55,7 +55,7 @@ class BillingViewSet(viewsets.ViewSet):
 
     def log(self, data):
         # Initialize a DynamoDB client
-        client = boto3.client('dynamodb', region_name=os.environ.get('REGION', 'us-east-1'))
+        client = boto3.client('dynamodb', region_name=os.environ.get('REGION', 'us-west-1'))
 
         # Define the table name
         table_name = 'BillingInfo'

@@ -52,7 +52,7 @@ spec:
     extensions:
       awsproxy:
       sigv4auth:
-        region: "us-east-1"
+        region: "us-west-1"
         service: "xray"     
 
     receivers:
@@ -502,18 +502,18 @@ spec:
     exporters:
       otlphttp:
         #traces_endpoint field follows this pattern https://xray.<region>.amazonaws.com/v1/traces
-        traces_endpoint: https://xray.us-east-1.amazonaws.com/v1/traces
+        traces_endpoint: https://xray.us-west-1.amazonaws.com/v1/traces
         auth:
           authenticator: sigv4auth
 
       awsemf:
-        region: 'us-east-1'
+        region: 'us-west-1'
         log_group_name: "/aws/application-signals/custom"
         namespace: "ApplicationSignalsCustomPoM"
         dimension_rollup_option: "NoDimensionRollup"    
 
       awsemf/application_signals:
-        region: 'us-east-1'
+        region: 'us-west-1'
         log_group_name: "/aws/application-signals/data"
         namespace: "ApplicationSignals"
         dimension_rollup_option: "NoDimensionRollup"

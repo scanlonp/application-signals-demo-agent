@@ -40,7 +40,7 @@ Note that if you want to run the scripts in a shell inside an [AWS Cloud9](https
 
 ``` shell
 export ACCOUNT=`aws sts get-caller-identity | jq .Account -r`
-export REGION='us-east-1'
+export REGION='us-west-1'
 ./push-ecr.sh
 ```
 
@@ -67,7 +67,7 @@ Please be aware that this sample application includes a publicly accessible Appl
 
    aws s3 mb s3://tfstate-$(uuidgen | tr A-Z a-z)
 
-   export AWS_REGION=us-east-1
+   export AWS_REGION=us-west-1
    export TFSTATE_KEY=application-signals/demo-applications
    export TFSTATE_BUCKET=$(aws s3 ls --output text | awk '{print $3}' | grep tfstate-)
    export TFSTATE_REGION=$AWS_REGION

@@ -77,7 +77,7 @@ WSGI_APPLICATION = "pet_clinic_insurance_service.wsgi.application"
 
 # Get secret name and region from environment or use defaults
 SECRET_NAME = os.environ.get('SECRET_NAME', 'petclinic-python-dbsecret')
-REGION = os.environ.get('REGION', 'us-east-1')
+REGION = os.environ.get('REGION', 'us-west-1')
 
 def get_secret_value(secret_name: str, region_name: str) -> str:
     """

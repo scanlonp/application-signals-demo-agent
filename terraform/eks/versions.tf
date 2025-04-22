@@ -16,6 +16,6 @@ terraform {
   # backend "s3" {
   #   bucket = "yagr-tfstate-log-us"
   #   key    = "tfc/observability/blog/python-apm-demo"
-  #   region = "us-east-1"
+  #   region = "us-west-1"
   # }
 }

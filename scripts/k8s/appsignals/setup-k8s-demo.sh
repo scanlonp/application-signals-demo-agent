@@ -2,7 +2,7 @@
 set -ex 
 
 # Default values
-DEFAULT_REGION="us-east-1"
+DEFAULT_REGION="us-west-1"
 OPERATION="create"
 CLUSTER="k8s-demo"
 

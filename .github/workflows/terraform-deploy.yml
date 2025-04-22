@@ -7,13 +7,13 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 env: # hard-code resource names
-  AWS_REGION: us-east-1
+  AWS_REGION: us-west-1
   TFSTATE_KEY: application-signals/demo-applications
-  TFSTATE_BUCKET: tfstate-f01d2741-3a66-49a3-81b0-511ec5ee3bda #  prerequisite: manually create a bucket using  "aws s3 mb s3://tfstate-$(uuidgen | tr A-Z a-z)" and paste bucket name here.
-  TFSTATE_REGION: us-east-1
+  TFSTATE_BUCKET: tfstate-4b067625-1495-4630-8cc0-aa380f2a4289 #  prerequisite: manually create a bucket using  "aws s3 mb s3://tfstate-$(uuidgen | tr A-Z a-z)" and paste bucket name here.
+  TFSTATE_REGION: us-west-1
   TF_VAR_cluster_name: app-signals-demo
   TF_VAR_cloudwatch_observability_addon_version: v3.6.0-eksbuild.2
-  TOPOLOGY_BUCKET: cicd-topology
+  TOPOLOGY_BUCKET: cicd-topology-10194f0e-5e1a-477f-88bb-cf04a61ebe1e
   AWS_EXECUTION_ENV: ${{ github.repository }}/actions/run/${{ github.run_id }}/${{ github.job }}
 
 permissions:

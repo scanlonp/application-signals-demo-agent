@@ -6,7 +6,7 @@ then
       export REGION="$1"
 else
       echo "REGION is empty"
-      export REGION="us-east-1"
+      export REGION="us-west-1"
 fi
 
 export ACCOUNT_ID=`aws sts get-caller-identity | jq .Account -r`

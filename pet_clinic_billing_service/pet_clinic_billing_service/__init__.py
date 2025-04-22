@@ -12,7 +12,7 @@ def table_exists(table_name, dynamodb_client):
 
 def create_dynamodb_table():
     # Initialize a DynamoDB client
-    dynamodb = boto3.client('dynamodb', region_name=os.environ.get('REGION', 'us-east-1'))
+    dynamodb = boto3.client('dynamodb', region_name=os.environ.get('REGION', 'us-west-1'))
 
     # Define table parameters
     table_name = 'BillingInfo'

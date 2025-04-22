@@ -19,7 +19,7 @@ Application Signals for AWS Lambda provides detailed insights into function exec
      Provide the following details when prompted:
       - **AWS Access Key ID**
       - **AWS Secret Access Key**
-      - **Default Region Name** (e.g., `us-east-1`)
+      - **Default Region Name** (e.g., `us-west-1`)
       - **Default Output Format** (e.g., `json`)
 2. **Required Software/Tools**:
    - Python3 (`v3.12` or higher).

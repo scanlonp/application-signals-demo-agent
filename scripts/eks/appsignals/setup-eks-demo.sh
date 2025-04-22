@@ -2,7 +2,7 @@
 set -ex
 
 # Default values
-DEFAULT_REGION="us-east-1"
+DEFAULT_REGION="us-west-1"
 OPERATION="create"
 USE_OTLP="false"  # Default value for OTLP
 

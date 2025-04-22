@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export REGION='us-east-1'
+export REGION='us-west-1'
 
 get_repo_link() {
     repository_exists=$(aws ecr-public describe-repositories --repository-names $1 --region ${REGION} --query 'repositories[0].repositoryUri' --output text 2>&1)
@@ -15,7 +15,7 @@ get_repo_link() {
     fi
 }
 
-aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+aws ecr-public get-login-password --region us-west-1 | docker login --username AWS --password-stdin public.ecr.aws
 
 repo_uri=$(get_repo_link springcommunity/spring-petclinic-api-gateway)
 echo "REPO is" ${repo_uri}

@@ -1,6 +1,6 @@
 data "aws_region" "current" {}
 provider "aws" {
-  region = "us-east-1"
+  region = "us-west-1"
 }
 
 #### DynamoDB

@@ -23,7 +23,7 @@ host=db.$NAMESPACE.svc.cluster.local
 
 sleep 60
 
-repo_prefix=$(aws ecr-public describe-repositories --repository-names traffic-generator --region us-east-1 --query 'repositories[0].repositoryUri' --output text | cut -d'/' -f1,2)
+repo_prefix=$(aws ecr-public describe-repositories --repository-names traffic-generator --region us-west-1 --query 'repositories[0].repositoryUri' --output text | cut -d'/' -f1,2)
 
 for config in $(ls ./sample-app/*.yaml)
 do
