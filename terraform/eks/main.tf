@@ -172,6 +172,27 @@ module "eks" {
   depends_on = [ module.vpc ]
 }
 
+resource "aws_iam_policy" "dynamodb_limited_access" {
+  name        = "DynamoDBLimitedAccess-${var.cluster_name}"
+  description = "Limited DynamoDB access policy with specific permissions"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = [
+          "dynamodb:Scan",
+          "dynamodb:Query",
+          "dynamodb:PutItem",
+          "dynamodb:BatchGetItem"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 module "demo_service_account" {
   #checkov:skip=CKV_TF_1:sub-module hash key ignored
   source = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
@@ -179,7 +200,13 @@ module "demo_service_account" {
   create_role                   = true
   role_name                     = "DemoServiceRole-${var.cluster_name}"
   provider_url                  = replace(module.eks.oidc_provider, "https://", "")
-  role_policy_arns              = ["arn:aws:iam::aws:policy/AmazonSQSFullAccess", "arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/AmazonKinesisFullAccess", "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess", "arn:aws:iam::aws:policy/AmazonBedrockFullAccess", "arn:aws:iam::aws:policy/AmazonBedrockFullAccess"]
+  role_policy_arns              = [
+    "arn:aws:iam::aws:policy/AmazonSQSFullAccess", 
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess", 
+    "arn:aws:iam::aws:policy/AmazonKinesisFullAccess", 
+    aws_iam_policy.dynamodb_limited_access.arn, 
+    "arn:aws:iam::aws:policy/AmazonBedrockFullAccess"
+  ]
   oidc_fully_qualified_subjects = ["system:serviceaccount:default:visits-service-account"]
 }
 
