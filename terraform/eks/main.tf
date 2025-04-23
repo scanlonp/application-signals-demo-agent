@@ -184,7 +184,6 @@ resource "aws_iam_policy" "dynamodb_limited_access" {
         Action   = [
           "dynamodb:Scan",
           "dynamodb:Query",
-          "dynamodb:PutItem",
           "dynamodb:BatchGetItem"
         ],
         Resource = "*"
