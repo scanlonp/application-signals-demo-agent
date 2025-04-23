@@ -18,6 +18,11 @@ port=$(echo $db_endpoint | awk -F ':' '{print $2}')
 
 cd ../../scripts/eks/appsignals/
 
+for config in $(ls ./sample-app/mongodb/*.yaml)
+do
+    sed -e "s/111122223333.dkr.ecr.us-west-2/$ACCOUNT_ID.dkr.ecr.$REGION/g" -e 's#\${REGION}'"#${REGION}#g" -e 's#\${DB_SERVICE_HOST}'"#${host}#g" $config | kubectl -v=2 ${OPERATION} --namespace=$NAMESPACE -f -
+done
+
 for config in $(ls ./sample-app/*.yaml)
 do
     sed -e "s/111122223333.dkr.ecr.us-west-2/$ACCOUNT_ID.dkr.ecr.$REGION/g" -e 's#\${REGION}'"#${REGION}#g" -e 's#\${DB_SERVICE_HOST}'"#${host}#g" $config | kubectl -v=2 ${OPERATION} --namespace=$NAMESPACE -f -
