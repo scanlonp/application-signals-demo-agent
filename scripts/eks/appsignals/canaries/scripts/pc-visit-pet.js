@@ -3,7 +3,7 @@ const log = require('SyntheticsLogger');
 const syntheticsConfiguration = synthetics.getConfiguration();
 
 const flowBuilderBlueprint = async function () {
-    let url = process.env.URL + "/#!/owners/1301/pets/848";
+    let url = process.env.URL + "/#!/owners/1/pets/1";
 
     syntheticsConfiguration.setConfig({
         includeRequestHeaders: true, // Enable if headers should be displayed in HAR
