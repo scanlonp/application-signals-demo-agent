@@ -15,6 +15,7 @@ env: # hard-code resource names
   TF_VAR_cloudwatch_observability_addon_version: v3.6.0-eksbuild.2
   TOPOLOGY_BUCKET: cicd-topology-61d64816-cffc-40b9-88b2-e4d6c101b034
   AWS_EXECUTION_ENV: ${{ github.repository }}/actions/run/${{ github.run_id }}/${{ github.job }}
+  TF_VAR_isengard_admin_role_arn: ${{ secrets.ISENGARD_ADMIN_ROLE_ARN }}
 
 permissions:
   id-token: write

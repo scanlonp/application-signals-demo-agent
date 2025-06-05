@@ -166,6 +166,15 @@ module "eks" {
 
   enable_cluster_creator_admin_permissions = true
 
+  manage_aws_auth_configmap = true
+  aws_auth_roles = [
+    {
+      rolearn  = var.isengard_role_arn
+      username = "isengard-admin"
+      groups   = ["system:masters"]
+    }
+  ]
+
   tags = {
     "karpenter.sh/discovery" = var.cluster_name
   }
