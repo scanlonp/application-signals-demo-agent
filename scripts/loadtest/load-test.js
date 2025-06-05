@@ -1,35 +1,120 @@
 const axios = require('axios');
 
-// Configuration - modify these values as needed
+// Configuration
 const baseUrl = process.env.URL || 'http://your-application-endpoint';
 const concurrentRequests = parseInt(process.env.CONCURRENT_REQUESTS, 10) || 50;
-const reportIntervalSeconds = parseInt(process.env.REPORT_INTERVAL, 10) || 60; // Report stats every minute
+const reportIntervalSeconds = parseInt(process.env.REPORT_INTERVAL, 10) || 60;
 
-// Track metrics
+// Metrics tracking
 let successCount = 0;
 let errorCount = 0;
 let startTime = Date.now();
 let lastReportTime = startTime;
 
-// Register signal handlers for graceful shutdown
-process.on('SIGINT', () => {
-  console.log("\n\nReceived SIGINT (Ctrl+C). Shutting down gracefully...");
-  printStats();
-  process.exit(0);
-});
+// Define endpoints with their configurations
+const ENDPOINTS = {
+    GET: [
+        {
+            url: '/api/gateway/owners/1',
+            weight: 15, // Higher weight means more frequent calls
+            timeout: 10000
+        },
+        {
+            url: '/api/payments/owners/1/pets/1',
+            weight: 10,
+            timeout: 10000
+        },
+        {
+            url: '/api/vet/vets',
+            weight: 5,
+            timeout: 10000
+        },
+        {
+            url: '/api/insurance/insurances',
+            weight: 5,
+            timeout: 10000
+        },
+        {
+            url: '/api/billing/billings',
+            weight: 5,
+            timeout: 10000
+        },
+        {
+            url: '/api/customer/diagnose/owners/1/pets/1',
+            weight: 1,
+            timeout: 30000 // Longer timeout for Bedrock
+        },
+        {
+            url: '/api/gateway/owners/-1', // Invalid request
+            weight: 1,
+            timeout: 10000
+        }
+    ],
+    POST: [
+        {
+            url: '/api/payments/owners/1/pets/1',
+            weight: 5,
+            timeout: 10000,
+            getData: () => ({
+                amount: Math.floor(Math.random() * 500) + 50,
+                notes: `load-test-payment-${Date.now()}`
+            })
+        },
+        {
+            url: '/api/visit/owners/7/pets/9/visits',
+            weight: 8,
+            timeout: 10000,
+            getData: () => ({
+                date: new Date().toISOString().split('T')[0],
+                description: `load-test-visit-${Date.now()}`
+            })
+        },
+        {
+            url: '/api/customer/owners',
+            weight: 5,
+            timeout: 10000,
+            getData: () => ({
+                firstName: "load-test",
+                lastName: "user",
+                address: "Test Address",
+                city: "Test City",
+                telephone: "1234567890"
+            })
+        },
+        {
+            url: '/api/customer/owners/7/pets',
+            weight: 5,
+            timeout: 10000,
+            getData: () => ({
+                id: 0,
+                name: `Pet${Date.now()}`,
+                birthDate: "2023-11-20T08:00:00.000Z",
+                typeId: Math.random() > 0.5 ? "1" : "2"
+            })
+        }
+    ],
+    DELETE: [
+        {
+            url: '/api/payments/clean-db',
+            weight: 1,
+            timeout: 10000
+        }
+    ]
+};
 
-process.on('SIGTERM', () => {
-  console.log("\n\nReceived SIGTERM. Shutting down gracefully...");
-  printStats();
-  process.exit(0);
-});
-
-// Helper function to sleep
+// Helper functions
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Function to print statistics
+// Add request tracking metrics
+let requestMetrics = {
+    GET: { success: 0, failed: 0 },
+    POST: { success: 0, failed: 0 },
+    DELETE: { success: 0, failed: 0 }
+};
+
+// Modified printStats function to include detailed metrics
 function printStats() {
     const totalTime = (Date.now() - startTime) / 1000;
     const totalRequests = successCount + errorCount;
@@ -40,91 +125,107 @@ function printStats() {
     console.log(`Successful: ${successCount}`);
     console.log(`Failed: ${errorCount}`);
     console.log(`Success rate: ${((successCount / totalRequests) * 100).toFixed(2)}%`);
-    console.log(`Time elapsed: ${formatTime(totalTime)}`);
+    console.log(`Time elapsed: ${Math.floor(totalTime / 3600)}h ${Math.floor((totalTime % 3600) / 60)}m ${Math.floor(totalTime % 60)}s`);
     console.log(`Average rate: ${rps.toFixed(2)} requests/second`);
+    console.log("\nDetailed Metrics:");
+    console.log("GET Requests:", requestMetrics.GET);
+    console.log("POST Requests:", requestMetrics.POST);
+    console.log("DELETE Requests:", requestMetrics.DELETE);
     console.log("----------------------------------------");
 }
 
-// Format seconds into a readable time string
-function formatTime(seconds) {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
+// Select endpoint based on weights
+function selectEndpoint(endpoints) {
+    const totalWeight = endpoints.reduce((sum, endpoint) => sum + endpoint.weight, 0);
+    let random = Math.random() * totalWeight;
     
-    return `${hours}h ${minutes}m ${secs}s`;
+    for (const endpoint of endpoints) {
+        random -= endpoint.weight;
+        if (random <= 0) return endpoint;
+    }
+    return endpoints[0];
 }
 
-// Function to make a single request
+// Make a single request
 async function makeRequest() {
+    let requestType;
+    let url;
+    let endpoint;
+
     try {
-        // Randomly select one of several endpoints to hit
-        const endpoints = [
-            // Owner endpoints
-            '/api/gateway/owners/1',
-            '/api/customer/owners',
-            
-            // Visit endpoints
-            '/api/visit/owners/7/pets/9/visits',
-            
-            // Pet endpoints
-            '/api/customer/owners/7/pets',
-            
-            // Other services
-            '/api/vet/vets',
-            '/api/insurance/insurances',
-            '/api/billing/billings',
-            '/api/payments/owners/1/pets/1'
-        ];
-        
-        const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
-        const url = `${baseUrl}${endpoint}`;
-        
-        // Determine if this should be a GET or POST request
-        const isPost = Math.random() > 0.7; // 30% chance of POST
-        
-        if (isPost) {
-            let data = {};
-            
-            // Prepare appropriate data based on endpoint
-            if (endpoint === '/api/visit/owners/7/pets/9/visits') {
-                data = {
-                    date: '2023-08-01',
-                    description: `high-traffic-visit-${Date.now()}`
-                };
-            } else if (endpoint === '/api/customer/owners') {
-                data = { 
-                    firstName: "high-traffic", 
-                    address: "Test Address", 
-                    city: "Test City", 
-                    telephone: "1234567890", 
-                    lastName: "Generator" 
-                };
-            } else if (endpoint === '/api/customer/owners/7/pets') {
-                data = {
-                    id: 0,
-                    name: "Pet" + Date.now(),
-                    birthDate: "2023-11-20T08:00:00.000Z",
-                    typeId: "1"
-                };
-            } else if (endpoint === '/api/payments/owners/1/pets/1') {
-                data = {
-                    amount: Math.floor(Math.random() * 500) + 50,
-                    notes: `high-traffic-payment-${Date.now()}`
-                };
-            }
-            
-            await axios.post(url, data, { timeout: 10000 });
+        // Determine request type (70% GET, 25% POST, 5% DELETE)
+        const random = Math.random();
+
+        if (random < 0.70) {
+            requestType = 'GET';
+            endpoint = selectEndpoint(ENDPOINTS.GET);
+            url = `${baseUrl}${endpoint.url}`;
+            await axios.get(url, { 
+                timeout: endpoint.timeout,
+                validateStatus: false 
+            });
+            requestMetrics.GET.success++;
+        } else if (random < 0.95) {
+            requestType = 'POST';
+            endpoint = selectEndpoint(ENDPOINTS.POST);
+            url = `${baseUrl}${endpoint.url}`;
+            const data = endpoint.getData ? endpoint.getData() : {};
+            await axios.post(url, data, { 
+                timeout: endpoint.timeout,
+                validateStatus: false 
+            });
+            requestMetrics.POST.success++;
         } else {
-            await axios.get(url, { timeout: 10000 });
+            requestType = 'DELETE';
+            endpoint = selectEndpoint(ENDPOINTS.DELETE);
+            url = `${baseUrl}${endpoint.url}`;
+            await axios.delete(url, { 
+                timeout: endpoint.timeout,
+                validateStatus: false 
+            });
+            requestMetrics.DELETE.success++;
         }
-        
+
         successCount++;
+
     } catch (err) {
         errorCount++;
-        console.error(`Error with request: ${err.message}`);
+        if (requestType) {
+            requestMetrics[requestType].failed++;
+        }
+
+        // Detailed error logging
+        const errorDetails = {
+            timestamp: new Date().toISOString(),
+            requestType: requestType || 'UNKNOWN',
+            url: url || 'UNKNOWN',
+            errorType: err.code || 'UNKNOWN',
+            errorMessage: err.message,
+            statusCode: err.response?.status,
+            responseData: err.response?.data
+        };
+
+        // Format error message
+        let errorMessage = [
+            `\nRequest Failed:`,
+            `Timestamp: ${errorDetails.timestamp}`,
+            `Type: ${errorDetails.requestType}`,
+            `URL: ${errorDetails.url}`,
+            `Error Type: ${errorDetails.errorType}`,
+            `Message: ${errorDetails.errorMessage}`
+        ];
+
+        if (errorDetails.statusCode) {
+            errorMessage.push(`Status Code: ${errorDetails.statusCode}`);
+        }
+
+        if (errorDetails.responseData) {
+            errorMessage.push(`Response Data: ${JSON.stringify(errorDetails.responseData, null, 2)}`);
+        }
+
+        console.error(errorMessage.join('\n'));
     }
-    
-    // Check if it's time to report statistics
+
     const currentTime = Date.now();
     if (currentTime - lastReportTime >= reportIntervalSeconds * 1000) {
         printStats();
@@ -132,31 +233,38 @@ async function makeRequest() {
     }
 }
 
-// Function to run a batch of concurrent requests
+// Run batch of concurrent requests
 async function runBatch(batchSize) {
-    const promises = [];
-    for (let i = 0; i < batchSize; i++) {
-        promises.push(makeRequest());
-    }
+    const promises = Array(batchSize).fill().map(() => makeRequest());
     await Promise.all(promises);
 }
 
-// Main function to run the traffic generator continuously
+// Main function
 async function generateTrafficContinuously() {
-    console.log(`Starting continuous high traffic generator targeting: ${baseUrl}`);
+    console.log(`Starting continuous traffic generator targeting: ${baseUrl}`);
     console.log(`Using concurrency level of ${concurrentRequests}`);
     console.log(`Will report statistics every ${reportIntervalSeconds} seconds`);
-    console.log(`Press Ctrl+C to stop the traffic generator`);
+    console.log("Press Ctrl+C to stop the traffic generator");
     console.log("----------------------------------------");
-    
-    // Continue indefinitely until manually stopped
+
     while (true) {
         await runBatch(concurrentRequests);
-        
-        // Small delay between batches to avoid overwhelming the local machine
-        await sleep(100);
+        await sleep(100); // Small delay between batches
     }
 }
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+    console.log("\nReceived SIGINT. Shutting down gracefully...");
+    printStats();
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    console.log("\nReceived SIGTERM. Shutting down gracefully...");
+    printStats();
+    process.exit(0);
+});
 
 // Start the traffic generator
 generateTrafficContinuously().catch(err => {
