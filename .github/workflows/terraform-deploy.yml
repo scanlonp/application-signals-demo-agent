@@ -155,3 +155,7 @@ jobs:
           endpoint="http://$(kubectl get ingress -o json --output jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')"
           echo "Application is available at: $endpoint"
           echo "APPLICATION_URL=$endpoint" >> $GITHUB_ENV
+
+      - name: Create Canaries
+        run: |
+          ./scripts/eks/appsignals/tf-deploy-canaries.sh ${{ env.AWS_REGION }} create $endpoint
