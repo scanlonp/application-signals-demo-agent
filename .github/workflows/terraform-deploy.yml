@@ -158,4 +158,4 @@ jobs:
 
       - name: Create Canaries
         run: |
-          ./scripts/eks/appsignals/tf-deploy-canaries.sh ${{ env.AWS_REGION }} create $endpoint
+          ./scripts/eks/appsignals/create-canaries.sh ${{ env.AWS_REGION }} create $endpoint
