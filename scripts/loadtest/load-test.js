@@ -13,53 +13,53 @@ let lastReportTime = startTime;
 
 // Define endpoints with their configurations
 const ENDPOINTS = {
-    GET: [
-        {
-            url: '/api/gateway/owners/1',
-            weight: 15, // Higher weight means more frequent calls
-            timeout: 10000
-        },
-        {
-            url: '/api/payments/owners/1/pets/1',
-            weight: 10,
-            timeout: 10000
-        },
-        {
-            url: '/api/vet/vets',
-            weight: 5,
-            timeout: 10000
-        },
-        {
-            url: '/api/insurance/insurances',
-            weight: 5,
-            timeout: 10000
-        },
-        {
-            url: '/api/billing/billings',
-            weight: 5,
-            timeout: 10000
-        },
-        {
-            url: '/api/customer/diagnose/owners/1/pets/1',
-            weight: 1,
-            timeout: 30000 // Longer timeout for Bedrock
-        },
-        {
-            url: '/api/gateway/owners/-1', // Invalid request
-            weight: 1,
-            timeout: 10000
-        }
-    ],
+    // GET: [
+    //     {
+    //         url: '/api/gateway/owners/1',
+    //         weight: 15, // Higher weight means more frequent calls
+    //         timeout: 10000
+    //     },
+    //     {
+    //         url: '/api/payments/owners/1/pets/1',
+    //         weight: 10,
+    //         timeout: 10000
+    //     },
+    //     {
+    //         url: '/api/vet/vets',
+    //         weight: 5,
+    //         timeout: 10000
+    //     },
+    //     {
+    //         url: '/api/insurance/insurances',
+    //         weight: 5,
+    //         timeout: 10000
+    //     },
+    //     {
+    //         url: '/api/billing/billings',
+    //         weight: 5,
+    //         timeout: 10000
+    //     },
+    //     {
+    //         url: '/api/customer/diagnose/owners/1/pets/1',
+    //         weight: 1,
+    //         timeout: 30000 // Longer timeout for Bedrock
+    //     },
+    //     {
+    //         url: '/api/gateway/owners/-1', // Invalid request
+    //         weight: 1,
+    //         timeout: 10000
+    //     }
+    // ],
     POST: [
-        {
-            url: '/api/payments/owners/1/pets/1',
-            weight: 5,
-            timeout: 10000,
-            getData: () => ({
-                amount: Math.floor(Math.random() * 500) + 50,
-                notes: `load-test-payment-${Date.now()}`
-            })
-        },
+        // {
+        //     url: '/api/payments/owners/1/pets/1',
+        //     weight: 5,
+        //     timeout: 10000,
+        //     getData: () => ({
+        //         amount: Math.floor(Math.random() * 500) + 50,
+        //         notes: `load-test-payment-${Date.now()}`
+        //     })
+        // },
         {
             url: '/api/visit/owners/7/pets/9/visits',
             weight: 8,
@@ -69,37 +69,37 @@ const ENDPOINTS = {
                 description: `load-test-visit-${Date.now()}`
             })
         },
-        {
-            url: '/api/customer/owners',
-            weight: 5,
-            timeout: 10000,
-            getData: () => ({
-                firstName: "load-test",
-                lastName: "user",
-                address: "Test Address",
-                city: "Test City",
-                telephone: "1234567890"
-            })
-        },
-        {
-            url: '/api/customer/owners/7/pets',
-            weight: 5,
-            timeout: 10000,
-            getData: () => ({
-                id: 0,
-                name: `Pet${Date.now()}`,
-                birthDate: "2023-11-20T08:00:00.000Z",
-                typeId: Math.random() > 0.5 ? "1" : "2"
-            })
-        }
+        // {
+        //     url: '/api/customer/owners',
+        //     weight: 5,
+        //     timeout: 10000,
+        //     getData: () => ({
+        //         firstName: "load-test",
+        //         lastName: "user",
+        //         address: "Test Address",
+        //         city: "Test City",
+        //         telephone: "1234567890"
+        //     })
+        // },
+        // {
+        //     url: '/api/customer/owners/7/pets',
+        //     weight: 5,
+        //     timeout: 10000,
+        //     getData: () => ({
+        //         id: 0,
+        //         name: `Pet${Date.now()}`,
+        //         birthDate: "2023-11-20T08:00:00.000Z",
+        //         typeId: Math.random() > 0.5 ? "1" : "2"
+        //     })
+        // }
     ],
-    DELETE: [
-        {
-            url: '/api/payments/clean-db',
-            weight: 1,
-            timeout: 10000
-        }
-    ]
+    // DELETE: [
+    //     {
+    //         url: '/api/payments/clean-db',
+    //         weight: 1,
+    //         timeout: 10000
+    //     }
+    // ]
 };
 
 // Helper functions
@@ -155,36 +155,45 @@ async function makeRequest() {
     try {
         // Determine request type (70% GET, 25% POST, 5% DELETE)
         const random = Math.random();
+        requestType = 'POST';
+        endpoint = selectEndpoint(ENDPOINTS.POST);
+        url = `${baseUrl}${endpoint.url}`;
+        const data = endpoint.getData ? endpoint.getData() : {};
+        await axios.post(url, data, { 
+            timeout: endpoint.timeout,
+            validateStatus: false 
+        });
+        requestMetrics.POST.success++;
 
-        if (random < 0.70) {
-            requestType = 'GET';
-            endpoint = selectEndpoint(ENDPOINTS.GET);
-            url = `${baseUrl}${endpoint.url}`;
-            await axios.get(url, { 
-                timeout: endpoint.timeout,
-                validateStatus: false 
-            });
-            requestMetrics.GET.success++;
-        } else if (random < 0.95) {
-            requestType = 'POST';
-            endpoint = selectEndpoint(ENDPOINTS.POST);
-            url = `${baseUrl}${endpoint.url}`;
-            const data = endpoint.getData ? endpoint.getData() : {};
-            await axios.post(url, data, { 
-                timeout: endpoint.timeout,
-                validateStatus: false 
-            });
-            requestMetrics.POST.success++;
-        } else {
-            requestType = 'DELETE';
-            endpoint = selectEndpoint(ENDPOINTS.DELETE);
-            url = `${baseUrl}${endpoint.url}`;
-            await axios.delete(url, { 
-                timeout: endpoint.timeout,
-                validateStatus: false 
-            });
-            requestMetrics.DELETE.success++;
-        }
+        // if (random < 0.70) {
+        //     requestType = 'GET';
+        //     endpoint = selectEndpoint(ENDPOINTS.GET);
+        //     url = `${baseUrl}${endpoint.url}`;
+        //     await axios.get(url, { 
+        //         timeout: endpoint.timeout,
+        //         validateStatus: false 
+        //     });
+        //     requestMetrics.GET.success++;
+        // } else if (random < 0.95) {
+        //     requestType = 'POST';
+        //     endpoint = selectEndpoint(ENDPOINTS.POST);
+        //     url = `${baseUrl}${endpoint.url}`;
+        //     const data = endpoint.getData ? endpoint.getData() : {};
+        //     await axios.post(url, data, { 
+        //         timeout: endpoint.timeout,
+        //         validateStatus: false 
+        //     });
+        //     requestMetrics.POST.success++;
+        // } else {
+        //     requestType = 'DELETE';
+        //     endpoint = selectEndpoint(ENDPOINTS.DELETE);
+        //     url = `${baseUrl}${endpoint.url}`;
+        //     await axios.delete(url, { 
+        //         timeout: endpoint.timeout,
+        //         validateStatus: false 
+        //     });
+        //     requestMetrics.DELETE.success++;
+        // }
 
         successCount++;
 
